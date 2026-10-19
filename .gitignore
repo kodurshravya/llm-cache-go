@@ -1,0 +1,11 @@
+/llmcache
+/fakeupstream
+/bin/
+*.test
+*.out
+coverage.*
+loadtest/trace.jsonl
+.env
+.DS_Store
+.idea/
+.vscode/

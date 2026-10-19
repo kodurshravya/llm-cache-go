@@ -1,0 +1,27 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  fakeupstream:
+    build: { context: .., dockerfile: deploy/Dockerfile }
+    command: ["/fakeupstream", "-addr", ":9090", "-latency", "300ms"]
+    ports: ["9090:9090"]
+
+  llmcache:
+    build: { context: .., dockerfile: deploy/Dockerfile }
+    command: ["/llmcache"]
+    environment:
+      UPSTREAM_URL: http://fakeupstream:9090
+      REDIS_URL: redis://redis:6379/0
+      ADMIN_TOKEN: dev-admin-token   # local only; set a real secret anywhere else
+      LOG_LEVEL: info
+    ports: ["8080:8080"]
+    depends_on: [redis, fakeupstream]
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["9091:9090"]
+    depends_on: [llmcache]
